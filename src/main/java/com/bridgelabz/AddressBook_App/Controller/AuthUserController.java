@@ -1,4 +1,6 @@
+
 package com.bridgelabz.AddressBook_App.Controller;
+
 
 
 import com.bridgelabz.AddressBook_App.DTO.*;
@@ -34,6 +36,7 @@ public class AuthUserController {
         ResponseDTO responseDTO = new ResponseDTO(responseMessage, null);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
+
     @PutMapping("/resetPassword/{email}")
     public ResponseEntity<ResponseDTO> resetPassword(@PathVariable String email,
                                                      @Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
