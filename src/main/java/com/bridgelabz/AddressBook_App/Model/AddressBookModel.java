@@ -1,4 +1,3 @@
-
 package com.bridgelabz.AddressBook_App.Model;
 
 import jakarta.persistence.*;
@@ -19,5 +18,4 @@ public class AddressBookModel {
     private Long id;
     private String name;
     private String phone;
-    private String email;
 }

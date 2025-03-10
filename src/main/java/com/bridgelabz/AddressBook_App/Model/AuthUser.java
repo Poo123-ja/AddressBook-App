@@ -1,7 +1,6 @@
 
 package com.bridgelabz.AddressBook_App.Model;
 
-
 import com.bridgelabz.AddressBook_App.DTO.AuthUserDTO;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
