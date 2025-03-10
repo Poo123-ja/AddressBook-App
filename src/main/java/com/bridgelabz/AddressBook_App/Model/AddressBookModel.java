@@ -1,3 +1,4 @@
+
 package com.bridgelabz.AddressBook_App.Model;
 
 import jakarta.persistence.*;
