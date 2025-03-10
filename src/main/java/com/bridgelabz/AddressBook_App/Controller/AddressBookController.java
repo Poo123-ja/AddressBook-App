@@ -1,10 +1,6 @@
-
 package com.bridgelabz.AddressBook_App.Controller;
-
-
-
 import com.bridgelabz.AddressBook_App.DTO.AddressBookDTO;
-import com.bridgelabz.AddressBook_App.Service.AddressBookService;
+import com.bridgelabz.AddressBook_App.Interface.AddressBookInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +11,8 @@ import java.util.List;
 @RequestMapping("/contacts")
 public class AddressBookController {
     @Autowired
-    private AddressBookService service;
+    AddressBookInterface service;
+
 
     //Get all contacts
     @GetMapping("/showcontacts")
