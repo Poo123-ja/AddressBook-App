@@ -1,3 +1,14 @@
+# Logs
+*.log
+logs/
+logs/*.log
+*.log.*
+*.out
+*.err
+*.bak
+*.tmp
+
+
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
@@ -31,3 +42,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+
+# Dependency directories
+/node_modules/
+target/
+build/
+bin/
