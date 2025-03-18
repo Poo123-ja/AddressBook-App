@@ -1,5 +1,5 @@
-
 package com.bridgelabz.AddressBook_App.Service;
+
 import com.bridgelabz.AddressBook_App.DTO.AddressBookDTO;
 import com.bridgelabz.AddressBook_App.Exception.UserException;
 import com.bridgelabz.AddressBook_App.Interface.AddressBookInterface;
@@ -7,109 +7,119 @@ import com.bridgelabz.AddressBook_App.Model.AddressBookModel;
 import com.bridgelabz.AddressBook_App.Repository.AddressRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 public class AddressBookService implements AddressBookInterface {
+
     @Autowired
     private AddressRepository repository;
 
-    // Retrieve all contacts
+    // ===================== GET ALL CONTACTS =====================
     @Override
+    @Cacheable(value = "contacts", key = "#root.methodName")
     public List<AddressBookDTO> getAllContacts() {
         try {
-            log.info("Fetching all contacts from database");
+            log.info("Fetching all contacts from the database.");
+
             return repository.findAll().stream()
-                    .map(contact -> new AddressBookDTO(contact.getId(), contact.getName(), contact.getPhone()))
-                    .collect(Collectors.toList());
-        }
-        catch (Exception e) {
+                    .filter(contact -> contact.getName() != null && contact.getPhone() != null && contact.getEmail() != null && contact.getAddress() != null) // Filter out null entries
+                    .map(contact -> new AddressBookDTO(
+                            contact.getId(),
+                            contact.getName(),
+                            contact.getPhone(),
+                            contact.getEmail(),
+                            contact.getAddress())
+                    ).collect(Collectors.toList());
+
+        } catch (Exception e) {
             log.error("Error fetching contacts: {}", e.getMessage());
             throw new UserException("Failed to fetch contacts. Please try again.");
         }
     }
 
-    // Save a new contact
+    // ===================== SAVE CONTACT =====================
     @Override
+    @CacheEvict(value = "contacts", allEntries = true) // Clears cache after save
     public AddressBookDTO saveContact(AddressBookDTO dto) {
-        try {
-            log.info("Saving new contact: {}", dto);
-            AddressBookModel contact = new AddressBookModel();
-            contact.setName(dto.getName());
-            contact.setPhone(dto.getPhone());
-            AddressBookModel savedContact = repository.save(contact);
-            log.info("Contact saved successfully with ID: {}", savedContact.getId());
-            return new AddressBookDTO(savedContact.getId(), savedContact.getName(), savedContact.getPhone());
-        }catch (Exception e) {
-            log.error("Error saving contact: {}", e.getMessage());
-            throw new UserException("Failed to save contact. Please try again.");
-        }
+        log.info("Saving new contact: {}", dto);
+
+        AddressBookModel contact = new AddressBookModel();
+        contact.setName(dto.getName());
+        contact.setPhone(dto.getPhone());
+        contact.setEmail(dto.getEmail());
+        contact.setAddress(dto.getAddress());
+
+        AddressBookModel savedContact = repository.save(contact);
+
+        log.info("✅ Contact saved successfully with ID: {}", savedContact.getId());
+        return new AddressBookDTO(savedContact.getId(), savedContact.getName(), savedContact.getPhone(), savedContact.getEmail(), savedContact.getAddress());
     }
 
-    // Retrieve a single contact by ID
+    // ===================== GET CONTACT BY ID =====================
     @Override
+    @Cacheable(value = "contacts", key = "#id")
     public AddressBookDTO getContactById(Long id) {
-        try {
-            log.info("Fetching contact with ID: {}", id);
-            Optional<AddressBookModel> contact = repository.findById(id);
-            if (contact.isPresent()) {
-                log.info("Contact found: {}", contact.get());
-            } else {
-                log.warn("Contact with ID {} not found.", id);
-            }
-            return contact.map(c -> new AddressBookDTO(c.getId(), c.getName(), c.getPhone()))
-                    .orElse(null);  // Returns null if contact is not found
+        log.info("Fetching contact with ID: {}", id);
 
-        }catch (Exception e) {
-            log.error("Error fetching contact by ID: {}", e.getMessage());
-            throw new UserException("Failed to retrieve contact. Please try again.");
+        Optional<AddressBookModel> contact = repository.findById(id);
+
+        if (contact.isEmpty()) {
+            log.warn("❗ Contact with ID {} not found.", id);
+            throw new UserException("Contact not found with ID: " + id);
         }
+
+        return new AddressBookDTO(
+                contact.get().getId(),
+                contact.get().getName(),
+                contact.get().getPhone(),
+                contact.get().getEmail(),
+                contact.get().getAddress()
+        );
     }
 
-    //  Update an existing contact by ID
+    // ===================== UPDATE CONTACT =====================
     @Override
+    @CachePut(value = "contacts", key = "'contactList'")
     public AddressBookDTO updateContact(Long id, AddressBookDTO dto) {
-        try{
-            log.info("Updating contact with ID: {}", id);
-            Optional<AddressBookModel> existingContact = repository.findById(id);
+        log.info("Updating contact with ID: {}", id);
 
-            if (existingContact.isPresent()) {
-                AddressBookModel contact = existingContact.get();
-                contact.setName(dto.getName());
-                contact.setPhone(dto.getPhone());
-                AddressBookModel updatedContact = repository.save(contact);
-                log.info("Contact updated successfully: {}", updatedContact);
-                return new AddressBookDTO(updatedContact.getId(), updatedContact.getName(), updatedContact.getPhone());
-            }else {
-                log.warn("Attempted to update non-existing contact with ID: {}", id);
-            }
-            return null;
-        }catch (Exception e) {
-            log.error("Error updating contact: {}", e.getMessage());
-            throw new UserException("Failed to update contact. Please try again.");
-        }
+        AddressBookModel contact = repository.findById(id)
+                .orElseThrow(() -> new UserException("Contact not found with ID: " + id));
+
+        contact.setName(dto.getName());
+        contact.setPhone(dto.getPhone());
+        contact.setEmail(dto.getEmail());
+        contact.setAddress(dto.getAddress());
+
+        AddressBookModel updatedContact = repository.save(contact);
+
+        log.info("✅ Contact updated successfully: {}", updatedContact);
+        return new AddressBookDTO(updatedContact.getId(), updatedContact.getName(), updatedContact.getPhone(), updatedContact.getEmail(), updatedContact.getAddress());
     }
 
-
+    // ===================== DELETE CONTACT =====================
     @Override
+    @CacheEvict(value = "contacts", allEntries = true)
     public boolean deleteContact(Long id) {
-        try {
-            log.info("Deleting contact with ID: {}", id);
-            if (repository.existsById(id)) {
-                repository.deleteById(id);
-                log.info("Contact with ID {} deleted successfully.", id);
-                return true;
-            } else {
-                log.warn("Attempted to delete non-existing contact with ID: {}", id);
-            }
-            return false;
-        } catch (Exception e) {
-            log.error("Error deleting contact: {}", e.getMessage());
-            throw new UserException("Failed to delete contact. Please try again.");
+        log.info("Deleting contact with ID: {}", id);
+
+        if (!repository.existsById(id)) {
+            log.warn("❗ Attempted to delete non-existing contact with ID: {}", id);
+            throw new UserException("Contact not found with ID: " + id);
         }
+
+        repository.deleteById(id);
+        log.info("✅ Contact with ID {} deleted successfully.", id);
+
+        return true;
     }
 }

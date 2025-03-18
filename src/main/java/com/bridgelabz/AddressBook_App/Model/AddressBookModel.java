@@ -16,6 +16,20 @@ public class AddressBookModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false, unique = true)
     private String phone;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String address;
+
+    public AddressBookModel(long l, String johnDoe, String number) {
+
+    }
 }

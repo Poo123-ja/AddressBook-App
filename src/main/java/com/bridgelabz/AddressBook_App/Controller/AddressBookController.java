@@ -8,16 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 @RestController
-@RequestMapping("/addressbook")
+@RequestMapping("/contacts")
 public class AddressBookController {
     @Autowired
     AddressBookInterface service;
 
 
     //Get all contacts
-    @GetMapping("/showcontacts")
+    @GetMapping("/getAll")
     public ResponseEntity<List<AddressBookDTO>> getAllContacts() {
         return ResponseEntity.ok(service.getAllContacts());
     }
