@@ -1,4 +1,7 @@
+
 package com.bridgelabz.AddressBook_App.Service;
+
+
 
 import com.bridgelabz.AddressBook_App.DTO.AddressBookDTO;
 import com.bridgelabz.AddressBook_App.Exception.UserException;
@@ -31,13 +34,11 @@ public class AddressBookService implements AddressBookInterface {
             log.info("Fetching all contacts from the database.");
 
             return repository.findAll().stream()
-                    .filter(contact -> contact.getName() != null && contact.getPhone() != null && contact.getEmail() != null && contact.getAddress() != null) // Filter out null entries
+                    .filter(contact -> contact.getName() != null && contact.getPhone() != null)  // Filter out null entries
                     .map(contact -> new AddressBookDTO(
                             contact.getId(),
                             contact.getName(),
-                            contact.getPhone(),
-                            contact.getEmail(),
-                            contact.getAddress())
+                            contact.getPhone())
                     ).collect(Collectors.toList());
 
         } catch (Exception e) {
@@ -45,6 +46,7 @@ public class AddressBookService implements AddressBookInterface {
             throw new UserException("Failed to fetch contacts. Please try again.");
         }
     }
+
 
     // ===================== SAVE CONTACT =====================
     @Override
@@ -55,13 +57,10 @@ public class AddressBookService implements AddressBookInterface {
         AddressBookModel contact = new AddressBookModel();
         contact.setName(dto.getName());
         contact.setPhone(dto.getPhone());
-        contact.setEmail(dto.getEmail());
-        contact.setAddress(dto.getAddress());
-
         AddressBookModel savedContact = repository.save(contact);
 
         log.info("✅ Contact saved successfully with ID: {}", savedContact.getId());
-        return new AddressBookDTO(savedContact.getId(), savedContact.getName(), savedContact.getPhone(), savedContact.getEmail(), savedContact.getAddress());
+        return new AddressBookDTO(savedContact.getId(), savedContact.getName(), savedContact.getPhone());
     }
 
     // ===================== GET CONTACT BY ID =====================
@@ -77,13 +76,7 @@ public class AddressBookService implements AddressBookInterface {
             throw new UserException("Contact not found with ID: " + id);
         }
 
-        return new AddressBookDTO(
-                contact.get().getId(),
-                contact.get().getName(),
-                contact.get().getPhone(),
-                contact.get().getEmail(),
-                contact.get().getAddress()
-        );
+        return new AddressBookDTO(contact.get().getId(), contact.get().getName(), contact.get().getPhone());
     }
 
     // ===================== UPDATE CONTACT =====================
@@ -97,13 +90,10 @@ public class AddressBookService implements AddressBookInterface {
 
         contact.setName(dto.getName());
         contact.setPhone(dto.getPhone());
-        contact.setEmail(dto.getEmail());
-        contact.setAddress(dto.getAddress());
-
         AddressBookModel updatedContact = repository.save(contact);
 
         log.info("✅ Contact updated successfully: {}", updatedContact);
-        return new AddressBookDTO(updatedContact.getId(), updatedContact.getName(), updatedContact.getPhone(), updatedContact.getEmail(), updatedContact.getAddress());
+        return new AddressBookDTO(updatedContact.getId(), updatedContact.getName(), updatedContact.getPhone());
     }
 
     // ===================== DELETE CONTACT =====================
